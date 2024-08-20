@@ -47,7 +47,7 @@ def createMap(df,interactive,zoom):
   return figure._repr_html_()
 
 
-def plot_andamento_centrale(DF, max_portate, unita_misura, fontsize):
+def plot_andamento_centrale(DF, unita_misura, fontsize):
   font = {'size': fontsize}
   matplotlib.rc('font', **font)
   buffer = BytesIO()
@@ -103,7 +103,7 @@ def plot_andamento_centrale(DF, max_portate, unita_misura, fontsize):
 
   ax.set_ylim(0,)
   twin1.set_ylim(0,)
-  twin2.set_ylim(0, max_portate)
+  twin2.set_ylim(0, )
 
   ax.yaxis.label.set_color(color1)
   twin1.yaxis.label.set_color(color2)
@@ -145,8 +145,9 @@ def plot_andamento_centrale(DF, max_portate, unita_misura, fontsize):
   plt.savefig(buffer, format="png")
   return buffer
 
+
 # ----------------------------------------------------------------------------------------------------------------------
-def plot_corrispettivi_centrale2(DF, max_portate, unita_misura, fontsize, max_corrispettivi):
+def plot_corrispettivi_centrale2(DF, unita_misura, fontsize, max_corrispettivi):
   font = {'size': fontsize}
   matplotlib.rc('font', **font)
   curr_anno = str(datetime.now().year)

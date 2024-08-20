@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated
+from django.forms.models import model_to_dict
 
 import numpy as np
 import pandas as pd
@@ -30,7 +31,7 @@ def load_diariletture(diari_letture, sheet_letture):
 
 def load_cashflow(diario_cashflow, sheet):
 	# CARICO FILE DI CASH-FLOW (contiene i dati di tutti gli anni)
-	df = pd.read_excel(diario_cashflow, sheet, index_col=None, header=[2, 3], na_values=[np.NaN])
+	df = pd.read_excel(diario_cashflow, sheet, index_col=None, header=[2, 3], na_values=[np.nan])
 	df = df.dropna(axis=1, how='all')
 	# NOME COLONNE NEL FILE EXCEL
 	x = ['Fatturazione TFO', 'Fatturazione Energia non incentivata', 'Riepilogo pagamenti']
@@ -62,7 +63,7 @@ def tabellaconsorzi_data(anno_nickname):
 	nickname = anno_nickname.split('_', 1)[1]
 
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
-	dz_impianto = impianto.__dict__
+	dz_impianto = model_to_dict(impianto)
 
 	# EMPTY DATA PER IMPIANTI CHE NON SONO PONTE GIURINO
 	if nickname != 'ponte_giurino':
@@ -152,7 +153,7 @@ def tabellacorrispettivi_data(anno_nickname):
 
 	# ESTRAPOLO DATI IMPIANTO DAL DATABASE
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
-	dz_impianto = impianto.__dict__
+	dz_impianto = model_to_dict(impianto)
 
 	# DEFINIZIONE MESE CORRENTE, PRECEDENTE E ANTECEDENTE
 	Now = datetime.now()
@@ -205,7 +206,7 @@ def tabellacorrispettivi_data(anno_nickname):
 		df1['comments'] = ''
 		df1.loc[df1.fatturazione_tfo != 0,'delta_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc']))
 		df1.loc[df1.fatturazione_tfo != 0,'ratio_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc'])) / df1['aspettata_tot'] * 100
-		df1['ratio_eur'] = df1['ratio_eur'].replace([-np.inf,np.inf],100)
+		df1['ratio_eur'] = df1['ratio_eur'].replace([-np.inf, np.inf], 100)
 
 		# CONTROLLO FINALE SU INSERIMENTO FATTURE DEGLI ULTIMI DUE MESI
 		if anno == Now.year:
@@ -228,7 +229,7 @@ def tabellacorrispettivi_data(anno_nickname):
 		dict1 = df1[['i', 'mese', 'E_incentivata', 'aspettata_inc', 'aspettata_non_inc', 'fatturazione_tfo', 'fatturazione_non_inc', 'incassi', 'ratio_eur','delta_eur','comments']].to_dict('records')
 
 	except Exception as error:
-		print(error)
+		print(f'Errore elaborazione Tabella Corrispettivi', type(error).__name__, "–", error)
 		dict1 = {}
 
 	table_data = {
@@ -248,7 +249,7 @@ def tabellamisure_data(anno_nickname):
 
 	# ESTRAPOLO DATI IMPIANTO DAL DATABASE
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
-	dz_impianto = impianto.__dict__
+	dz_impianto = model_to_dict(impianto)
 
 	# DEFINIZIONE MESE CORRENTE, PRECEDENTE E ANTECEDENTE
 	Now = datetime.now()
@@ -304,8 +305,7 @@ def tabellamisure_data(anno_nickname):
 
 		# CHECK FINALE DI INSERIMENTO MISURE PER ULTIMI DUE MESI
 		if anno == Now.year:
-			if df1[last_last_mese == df1['mese']].iloc[0]['prodotta_campo'] == 0 or \
-					df1[last_last_mese == df1['mese']].iloc[0]['prodotta_gse'] == 0:
+			if df1[last_last_mese == df1['mese']].iloc[0]['prodotta_campo'] == 0 or df1[last_last_mese == df1['mese']].iloc[0]['prodotta_gse'] == 0:
 				index = df1[last_last_mese == df1['mese']].iloc[0]['i']
 				df1.loc[index, 'check_misure'] = 'misure'
 
@@ -318,7 +318,8 @@ def tabellamisure_data(anno_nickname):
 			df1 = df1[df1['mese'].dt.year == anno]
 
 		# CODICE DI GESTIONE DEI COMMENTI SULLE MISURE
-		comments = Commento.objects.filter(impianto=nickname)
+		# comments = impianto.Commento.objects.filter(impianto=nickname)
+		comments = impianto.commento_set.all()
 		comments = list(comments.values())
 		comments = [comment for comment in comments if comment['mese_misura'].year == anno]
 
@@ -336,7 +337,7 @@ def tabellamisure_data(anno_nickname):
 			 'prodotta_gse', 'immessa_gse', 'check_misure', 'comments', 'prodotta_def']].to_dict('records')
 
 	except Exception as error:
-		print(error)
+		print(f'Errore elaborazione Tabella Misure', type(error).__name__, "–", error)
 		dict2 = {}
 
 	table_data = {
@@ -350,7 +351,7 @@ def tabellamisure_data(anno_nickname):
 def energievolumi_dati(nickname):
 	# ESTRAPOLO DATI IMPIANTO DAL DATABASE
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
-	dz_impianto = impianto.__dict__
+	dz_impianto = model_to_dict(impianto)
 
 	dati_mensili = str(impianto.datimensili_set.all()[0])
 	df_dati_mensili = pd.read_excel(dati_mensili, 'Foglio1', parse_dates=False)

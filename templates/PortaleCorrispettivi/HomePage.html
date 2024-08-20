@@ -10,12 +10,12 @@
 		</div>
 	
 		<div class="item-b">
-			<div class="container-fluid pt-3">
-					<div class="col corrispettivi-card px-3 pt-3">
+			<div class="container-fluid pt-3 px-2">
+					<div class="corrispettivi-card px-4 pt-2">
 {#						<img src="/static/images/sfondo_san_teodoro.png" style="height: 100px; width: 105%; overflow: hidden; margin: -20px -20px; padding: 0; object-fit: cover; -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));">#}
 						<h3 style="color: #4a3c54; font-weight: bold; ">Parco idroelettrici</h3>
-						<h5>Misure di energia e situazione dei corrispettivi</h5> <div id="spinner" class="spinner-border spinner-border-sm" role="status"></div>
-						<div class="container">
+						<p>Misure di energia e situazione dei corrispettivi</p> <div id="spinner" class="spinner-border spinner-border-sm" role="status"></div>
+						<div class="col-1">
 							<b>Selezionare anno</b>
 							<select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selettore-anno">
 								<option value="2022">2022</option>
@@ -23,36 +23,36 @@
 								<option value="2024" selected>2024</option>
 							</select>
 						</div>
-						<div class="row" style="min-height: 70vh">
-							<div class="col p-0">
-								<div id="chart" style="height: 100%"></div>
-							</div>
-							<div class="col pe-4 py-4">
-								<div class="container" style="border: 1px solid lightgrey; border-radius: 5px">
-								<table id="tabella_corrispettivi" class="table-striped compact" style="width:100%;">
-									<thead>
-										<tr data-dt-order="disable">
-											<th>n.</th>
-								      <th> Mese </th>
-								      <th style="text-align: center" > <i class="fa fa-bolt" aria-hidden="true"></i>&nbsp;Energia (kWh) </th>
-								      <th style="text-align: center" > <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;Corrispettivi </th>
-								      <th style="text-align: center" > <i class="fa fa-file-text" aria-hidden="true"></i>&nbsp;Fatturazione </th>
-								      <th style="text-align: center" > <i class="fa fa-eur" aria-hidden="true"></i>&nbsp;Incassi </th>
-								    </tr>
-								  </thead>
-										<tfoot>
-											<tr>
-												<td></td>
-												<td><b>Anno</b></td>
-												<td style="text-align: center" ></td>
-												<td style="text-align: center" ></td>
-												<td style="text-align: center" ></td>
-												<td style="text-align: center" ></td>
-											</tr>
-										</tfoot>
-								</table>
+						<div class="row p-4">
+								<div class="col" style="min-height: 70vh; min-width: 60%">
+									<div id="chart" style="height: 100%; background-color: rgba(255,255,255,0.7)"></div>
 								</div>
-							</div>
+								<div class="col">
+									<div class="container" style="border: 1px solid lightgrey; border-radius: 5px; width:100%; background-color: rgba(255,255,255,0.7)">
+									<table id="tabella_corrispettivi" class="display compact" style="width:100%;">
+										<thead>
+											<tr data-dt-order="disable">
+												<th>n.</th>
+									      <th> Mese </th>
+									      <th style="text-align: center" > <i class="fa fa-bolt" aria-hidden="true"></i>&nbsp;Energia (kWh) </th>
+									      <th style="text-align: center" > <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;Corrispettivi </th>
+									      <th style="text-align: center" > <i class="fa fa-file-text" aria-hidden="true"></i>&nbsp;Fatturazione </th>
+									      <th style="text-align: center" > <i class="fa fa-eur" aria-hidden="true"></i>&nbsp;Incassi </th>
+									    </tr>
+									  </thead>
+											<tfoot>
+												<tr>
+													<td></td>
+													<td><b>Anno</b></td>
+													<td style="text-align: center" ></td>
+													<td style="text-align: center" ></td>
+													<td style="text-align: center" ></td>
+													<td style="text-align: center" ></td>
+												</tr>
+											</tfoot>
+									</table>
+									</div>
+								</div>
 						</div>
 					</div>
 			</div>
@@ -147,13 +147,13 @@
 											xAxis: [{type:'category', data: mesi, show: true, axisTick: {alignWithLabel: true}, 
 													axisLabel: {formatter: val => val.substring(0, 3)}
 											},],
-											grid: [{top:'2%', bottom: '2%', left: '3%', right: '3%'}],
+											grid: [{top:'10%', bottom: '10%', left: '10%', right: '10%'}],
 											series: [
 													{data: energie, type: 'line',xAxisIndex: 0, yAxisIndex: 0, name:'Energia incentivata', 
 															tooltip: {valueFormatter: value => toLocaleKWh(value,0)}, color: color_palette[0], symbolSize: 1, 
 															label: {show: true, position: 'top', backgroundColor: '#efefef', borderRadius: 2, 
 																	formatter: function (params) {
-																			return params.value === 0 ? '': toLocale(params.value,0)
+																			return params.value === 0 ? '': toLocaleKWh(params.value,0)
 																	}
 															}
 													}, 

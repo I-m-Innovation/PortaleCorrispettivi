@@ -3,19 +3,23 @@
 
 {% block title %}Portale Impianti{% endblock %}
 
+{% block extra_css %}
+	<link rel="stylesheet" href="{% static 'css/style_report.css' %}">
+{% endblock %}
+
 {% block body %}
-	<main style="height: 100vh; width: 100%; padding: 10px; background-color: #ececec">
+	<main style="background-color: #ececec">
 	<div class="report-page">
 		<div class="report-item-a">
 			<h3 style="font-weight: bold; color: white">Report di produzione - {{ impianto.nome_impianto }}</h3>
 		</div>
 		<div class="report-grafici">
 		<div class="report-item-b">
-			<div style="margin: 10px 0 0 50px"><span style="padding: 1px 10px; color: white; font-size: 18px; font-weight: bold; border-radius: 3px; background-color: #4088d4">Andamento anno corrente</span></div>
-			<div id="chart1" style="height: 100%; width: 100%; padding-top: 10px"></div>
+			<div style="margin: 10px 0 0 50px"><span class="report-title-text">Andamento anno corrente</span></div>
+			<div id="chart1" style="height: 90%; width: 100%; padding-top: 10px"></div>
 		</div>
 		<div class="report-item-c">
-			<div id="chart2" style="height: 100%; width: 100%; margin-right: -20px; padding-top: 10px"></div>
+			<div id="chart2" style="height: 90%; width: 100%; margin-right: -20px; padding-top: 10px"></div>
 		</div>
 		</div>
 		<div class="report-item-d">
@@ -43,14 +47,14 @@
 						</tbody>
 					</table>
 				</div>
-				<div class="container">
-					<a href="{% url 'genera-report-pdf' nickname %}" class="btn btn-secondary btn-sm" role="button">Genera PDF</a>
-				</div>
+			</div>
+			<div class="report-link">
+				<a href="{% url 'genera-report-pdf' nickname %}" class="btn btn-secondary btn-sm" role="button">Genera PDF</a>
 			</div>
 		</div>
 		<div class="report-item-e">
-			<div style="margin: 10px 0 0 50px"><span style="padding: 1px 10px; color: white; font-size: 18px; font-weight: bold; border-radius: 3px; background-color: #4088d4">Storico, ultimi 24 mesi</span></div>
-			<div id="chart3" style="height: 100%; width: 100%; padding-top: 10px"></div>
+			<div style="margin: 10px 0 0 50px"><span class="report-title-text">Storico, ultimi 24 mesi</span></div>
+			<div id="chart3" style="height: 90%; width: 100%; padding-top: 10px"></div>
 		</div>
 	</div>
 		
@@ -78,6 +82,7 @@
           'cache': false,
           'contentType': 'application/json'
       }).done( function(DATA) {
+					console.log(DATA);
           let DATI = DATA.TableCorrispettivi
           let mesi = DATI.map((el, index)=> el.mese);
 					let e_incentivata_anno = DATI.map((el, index)=> parseFloat(el.E_incentivata || ''));
@@ -215,6 +220,7 @@
 			var portate_medie = [];
             
 			$.get(endpoint).done(function (data) {
+					console.log(data);
 					mesi = data.mesi;
 					energie = data.energie.map(value => value==0 ? '' : value);
 					volumi = data.volumi;

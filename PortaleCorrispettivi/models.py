@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, ModelChoiceField, ChoiceField, Select
 from django import forms
 from django.forms import SelectDateWidget
+from django.contrib.admin.widgets import AdminDateWidget
 
 
 def check_posizione(self):
@@ -93,10 +94,11 @@ class DiarioLetture(models.Model):
 	anno = models.IntegerField(null=False, blank=False, editable=True, help_text="Anno di lettura", verbose_name='Anno')
 	nome = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Nome file')
 	cartella = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Cartella - Percorso', default='-')
+	unit = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Unità - Periferica', default='Z:/')
 	impianto = models.ForeignKey(Impianto, on_delete=models.CASCADE, null=False, blank=False, editable=True, help_text="Relativo Impianto", verbose_name='Impianto')
 
 	def __str__(self):
-		return self.nome
+		return self.unit + self.cartella + self.nome
 
 	class Meta:
 		verbose_name = 'Diario letture'
@@ -111,9 +113,11 @@ class AddDiarioLettureForm(forms.ModelForm):
 class Cashflow(models.Model):
 	percorso = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Percorso file')
 	impianto = models.ForeignKey(Impianto, on_delete=models.CASCADE, null=False, blank=False, editable=True, help_text="Relativo Impianto", verbose_name='Impianto')
+	unit = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Unità - Periferica',
+							default='Z:/')
 
 	def __str__(self):
-		return self.percorso
+		return self.unit + self.percorso
 
 	class Meta:
 		verbose_name = 'File CashFlow'
@@ -128,9 +132,11 @@ class AddCashflowForm(forms.ModelForm):
 class DatiMensili(models.Model):
 	percorso = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Percorso file')
 	impianto = models.ForeignKey(Impianto, on_delete=models.CASCADE, null=False, blank=False, editable=True, help_text="Relativo Impianto", verbose_name='Impianto')
+	unit = models.CharField(null=False, blank=False, editable=True, max_length=150, verbose_name='Unità - Periferica',
+							default='Z:/')
 
 	def __str__(self):
-		return self.percorso
+		return self.unit + self.percorso
 
 	class Meta:
 		verbose_name = 'File dati mensili'
@@ -156,18 +162,15 @@ class Commento(models.Model):
 		verbose_name_plural = 'Commenti'
 
 
-years_range = [x for x in range(2018, 2030)]
-
-
 class AddCommentoForm(forms.ModelForm):
-	date_input = forms.DateField(widget=SelectDateWidget(years=years_range), label='Selezionare mese: ', help_text='Inserire un giorno qualsiasi.')
+	date_input = forms.DateField(widget=SelectDateWidget(years=range(2021, 2030, 1)), label='Selezionare mese ')
 	delete = forms.BooleanField(widget=forms.CheckboxInput(), initial=False, label='Cancella commento', required=False)
 
 	class Meta:
 		model = Commento
-		fields = ['testo','impianto','stato']
+		fields = ['testo', 'impianto', 'stato']
 		widgets = {
-			'impianto': forms.TextInput(attrs={'readonly': 'readonly'}),
+			# 'mese_misura': SelectDateWidget(years=range(2021, 2030, 1)),
 			'testo': forms.Textarea(attrs={'cols': 30, 'rows': 8}),
 		}
 		labels = {

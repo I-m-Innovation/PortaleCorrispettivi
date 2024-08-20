@@ -1,3 +1,4 @@
+from django.forms import model_to_dict
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
@@ -57,7 +58,7 @@ def impianto(request, nickname):
 	dz_impianto = dz_impianti[nickname]
 
 	diari_letture = list(impianto.diarioletture_set.all())
-	dz_impianto['diari_letture'] = {diario.anno: diario.nome for diario in diari_letture}
+	dz_impianto['diari_letture'] = {str(diario.anno): diario.nome for diario in diari_letture}
 	anni = list(dz_impianto['diari_letture'].keys())
 
 	dz_impianto['active'] = True
@@ -69,30 +70,33 @@ def impianto(request, nickname):
 
 		if form.is_valid():
 			form = form.cleaned_data
-			old_comment = Commento.objects.filter(mese_misura=form['date_input'], impianto=form['impianto'])
+			old_comment = impianto.commento_set.filter(mese_misura=form['date_input'])
 			if old_comment.exists():
 				if form['delete']:
 					old_comment.delete()
 					messages.warning(request, 'Il commento è stato eliminato')
 					# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
-				old_comment.update(testo=form['testo'])
-				old_comment.update(stato=form['stato'])
-				messages.warning(request, 'Il precedente commento è stato scovrascritto')
+				else:
+					old_comment.update(testo=form['testo'])
+					old_comment.update(stato=form['stato'])
+					messages.warning(request, 'Il precedente commento è stato scovrascritto')
 				# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
-			new_commento = Commento.objects.create(
-				testo=form['testo'],
-				impianto=form['impianto'],
-				stato=form['stato'],
-				mese_misura=datetime(form['date_input'].year, form['date_input'].month, 1)
-			)
-			new_commento.save()
-			messages.success(request, 'Commento inserito')
-			# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
+			else:
+				new_commento = Commento.objects.create(
+					testo=form['testo'],
+					impianto=form['impianto'],
+					stato=form['stato'],
+					mese_misura=datetime(form['date_input'].year, form['date_input'].month, 1)
+				)
+				new_commento.save()
+				messages.success(request, 'Commento inserito')
+				# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
+			form = AddCommentoForm(initial={'impianto': impianto})
 	else:
-		form = AddCommentoForm(initial={'impianto': nickname})
+		form = AddCommentoForm(initial={'impianto': impianto})
 
 	context = {
 		'impianti': dz_impianti,
@@ -150,7 +154,7 @@ def genera_reportPDF(request, nickname):
 		DF2.loc[DF2['prodotta_campo'] == '', 'prodotta_campo'] = 0
 		tot_prodotta = sum(list(DF2['prodotta_campo'].astype('float64')))
 		aggragati = [
-			[Paragraph('<b><font color=white>Agreggati ' + anno_prec + '</font></b>'), ''],
+			[Paragraph('<b><font color=white>Aggregati ' + anno + '</font></b>'), ''],
 			['Energia prodotta', Paragraph(f'<b>{int(tot_prodotta):,}&nbsp;kWh</b>'.replace(',', '.'))],
 			['Totale incassi GSE',
 			 Paragraph(f'<b>{tot_incassi:,.2f}&nbsp;€</b>'.replace('.', '$$').replace(',', '.').replace('$$', ','))],
@@ -169,26 +173,23 @@ def genera_reportPDF(request, nickname):
 			aspect = iw / float(ih)
 			return Image(path, width=(height * aspect), height=height), height * aspect
 
-	[dz_impianti, nicks, df] = fn.read_impianti()
-	dz_impianto = dz_impianti[nickname]
+	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
+	dz_impianto = model_to_dict(impianto)
 
 	dati_produzione = vlm(nickname)
 	DF = pd.DataFrame(dati_produzione)
 	DF['mesi'] = DF['mesi'].dt.strftime('%m/%y')
-	max_portate = dz_impianto['Var2_max']
-	if nickname in impianti_m3s:
-		unita_misura = 'mc/s'
-	else:
-		unita_misura = 'l/s'
+	max_portate = dz_impianto['portata_concessione']
+	unita_misura = dz_impianto['unita_misura']
 
 	# GRAFICO ENERGIE, VOLUMI DERIVATI E PORTATE MEDIE
-	plot_andamento = gf.plot_andamento_centrale(DF, max_portate, unita_misura, 8)
+	plot_andamento = gf.plot_andamento_centrale(DF, unita_misura, 8)
 
 	# GRAFICO CORRISPETTIVI ANNO CORRENTE
 	curr_anno = str(datetime.now().year)
 	dati_corrispettivi = tblc(curr_anno+"_"+nickname)
 	DF = pd.DataFrame(dati_corrispettivi['TableCorrispettivi'])
-	plot_corrispettivi = gf.plot_corrispettivi_centrale2(DF, max_portate, unita_misura, 11, max_corrispettivi[nickname])
+	plot_corrispettivi = gf.plot_corrispettivi_centrale2(DF, unita_misura, 11, max_corrispettivi[nickname])
 
 	# TABELLE AGGRAGATI ANNO PRECEDENT E ANTECEDENTE
 	anno_prec = str(datetime.now().year - 1)
@@ -196,7 +197,7 @@ def genera_reportPDF(request, nickname):
 	dati_misure = tblm(anno_prec + "_" + nickname)
 	DF1 = pd.DataFrame(dati_corrispettivi['TableCorrispettivi'])
 	DF2 = pd.DataFrame(dati_misure['TableMisure'])
-	aggragati_prec = tabelle_aggregati(DF1,DF2,anno_prec)
+	aggragati_prec = tabelle_aggregati(DF1, DF2, anno_prec)
 
 	# NEL CASO DI TORRINO FORESTA SKIPPO IL 2022 -> DA RIMUOVERE IL PROSSIMO ANNO
 	if not nickname=='ionico_foresta':
@@ -222,14 +223,14 @@ def genera_reportPDF(request, nickname):
 
 	# INSERISCO LOGHI IN ALTO A DESTRA DELLA SLIDE
 	logo = []
-	img1, LOGO1_height = get_image('Dashboard/static/Dashboard/images/zilio_logo.png', width=4.5 * cm)
+	img1, LOGO1_height = get_image('static/images/zilio_logo.png', width=4.5 * cm)
 	logo.append(img1)
 	x, y = width - 4.5 * cm - x_offset, height - LOGO1_height - y_offset
 	w, h = 4.5 * cm, LOGO1_height
 	frame_LOGO1 = Frame(x, y, w, h, showBoundary=show_boundaries, topPadding=0, bottomPadding=0)
 	frame_LOGO1.addFromList(logo, c)
 	logo = []
-	img2, IMG2_height = get_image('Dashboard/static/Dashboard/images/logo_IM.png', width=2 * cm)
+	img2, IMG2_height = get_image('static/images/logo_IM.png', width=2 * cm)
 	logo.append(img2)
 	x, y = width - frame_LOGO1.width - 2 * cm - 2*x_offset, height - frame_LOGO1.height - y_offset
 	w, h = 2 * cm, frame_LOGO1.height

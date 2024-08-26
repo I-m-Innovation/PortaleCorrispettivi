@@ -90,25 +90,29 @@ def impianto(request, nickname):
 				# SE è STATO SELEZIONATA LA CHECKBOX PER L'ELIMINAZIONE DEL COMMENTO
 				if form['delete']:
 					old_comment.delete()
-					messages.warning(request, 'Il commento è stato eliminato')
+					messages.warning(request, f'{form['date_input']} - Il commento è stato eliminato')
 
 				# ALTRIMENTI SI SOVRASCRIVE
 				else:
 					old_comment.update(testo=form['testo'])
 					old_comment.update(stato=form['stato'])
-					messages.warning(request, 'Il precedente commento è stato scovrascritto')
+					messages.warning(request, f'{form['date_input']} - Il precedente commento è stato scovrascritto')
 
 			# SE NON ESISTE UN PRECEDENTE COMMENTO PER QUEL MESE/ANNO
 			# CREAZIONE NUOVO COMMENTO
 			else:
-				new_commento = Commento.objects.create(
-					testo=form['testo'],
-					impianto=form['impianto'],
-					stato=form['stato'],
-					mese_misura=datetime(form['date_input'].year, form['date_input'].month, 1)
-				)
-				new_commento.save()
-				messages.success(request, 'Commento inserito')
+				if form['delete']:
+					messages.warning(request, f'{form['date_input']} - Non è presente nessun comento')
+
+				else:
+					new_commento = Commento.objects.create(
+						testo=form['testo'],
+						impianto=form['impianto'],
+						stato=form['stato'],
+						mese_misura=datetime(form['date_input'].year, form['date_input'].month, 1)
+					)
+					new_commento.save()
+					messages.success(request, f'{form['date_input']} - Commento inserito')
 
 			# SALVATO IL COMMENTO --> RITORNO FORM VUOTO
 			form = AddCommentoForm(initial={'impianto': impianto})

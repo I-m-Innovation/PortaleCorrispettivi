@@ -49,3 +49,9 @@ class DatiMensiliAdmin(admin.ModelAdmin):
 	actions = [cambia_periferica_Y, cambia_periferica_Z]
 
 
+@admin.register(linkportale)
+class linkportaleAdmin(admin.ModelAdmin):
+	list_display = [field.name for field in linkportale._meta.fields]
+	form = linkportaleForm
+
+

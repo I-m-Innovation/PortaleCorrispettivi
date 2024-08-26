@@ -50,6 +50,10 @@ def home(request):
 
 @login_required(login_url='login')
 def impianto(request, nickname):
+	# LINK PORTALE MONITORAGGIO (NELLA NAV-BAR)
+	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
+	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
+
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
 	df_impianti = pd.DataFrame(impianti.values())
@@ -99,6 +103,10 @@ def impianto(request, nickname):
 		form = AddCommentoForm(initial={'impianto': impianto})
 
 	context = {
+		# PAGINA
+		'link_monitoraggio': link_monitoraggio,
+		'link_analis': link_analisi,
+		# DATI PAGINA
 		'impianti': dz_impianti,
 		'headtitle': 'Dettaglio impianto',
 		'nickname': nickname,
@@ -112,6 +120,10 @@ def impianto(request, nickname):
 
 @login_required(login_url='login')
 def view_report_impianto(request, nickname):
+	# LINK PORTALE MONITORAGGIO (NELLA NAV-BAR)
+	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
+	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
+
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	df_impianti = pd.DataFrame(impianti.values())
 	df_impianti = df_impianti.set_index('nickname')
@@ -129,6 +141,10 @@ def view_report_impianto(request, nickname):
 		unita_misura = 'l/s'
 
 	context = {
+		# PAGINA
+		'link_monitoraggio': link_monitoraggio,
+		'link_analis': link_analisi,
+		# DATI PAGINA
 		'nickname': nickname,
 		'impianto': dz_impianto,
 		'curr_anno': curr_anno,

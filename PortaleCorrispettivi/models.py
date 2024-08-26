@@ -177,3 +177,19 @@ class AddCommentoForm(forms.ModelForm):
 			'testo': 'Commento:',
 			'impianto': 'Impianto',
 		}
+
+
+class linkportale(models.Model):
+	portale = models.CharField(max_length=200, blank=False, null=False, editable=True, default='-', verbose_name='Nome portale')
+	tag = models.CharField(max_length=50, blank=False, null=False, editable=True, default='-', verbose_name='tag portale')
+	link = models.CharField(max_length=250, blank=False, null=False, editable=True, default='-', verbose_name='link-portale')
+
+	class Meta:
+		verbose_name = 'Link Portale'
+		verbose_name_plural = 'Link Portali'
+
+
+class linkportaleForm(ModelForm):
+	class Meta:
+		model = linkportale
+		fields = "__all__"

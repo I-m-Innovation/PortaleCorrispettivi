@@ -17,11 +17,11 @@
 	        Menù
         </a>
         <ul class="dropdown-menu">
-	        <li><a class="dropdown-item" href="">Monitoraggio</a></li>
-	        <li><a class="dropdown-item" href="">Analisi</a></li>
+	        <li><a class="dropdown-item" href="{{ link_monitoraggio }}">Monitoraggio</a></li>
+	        <li><a class="dropdown-item" href="{{ link_analisi }}">Analisi</a></li>
 	        <li><a class="dropdown-item" href="#">Corrispettivi</a></li>
 	        <li class="dropdown-divider"></li>
-	        <li><a class="dropdown-item" href="">Home</a></li>
+	        <li><a class="dropdown-item" href="{% url 'home' %}">Home</a></li>
         </ul>
       </li>
     </ul>

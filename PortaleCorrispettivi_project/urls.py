@@ -24,5 +24,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('', views.HomePage, name='home'),
     path('corrispettivi-impianti/', include('PortaleCorrispettivi.urls')),
+    path('loading/1/', views.loadingPageMonitoraggio, name='next-monitoraggio'),
+    path('loading/2/', views.loadingPageAnalisi, name='next-analisi'),
     path('loading/3/', views.loadingPageCorrispettivi, name='next-corrispettivi'),
 ]

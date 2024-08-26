@@ -30,6 +30,10 @@ max_energie = {'ionico_foresta': 157000, 'san_teodoro': 122000, 'ponte_giurino':
 
 @login_required(login_url='login')
 def home(request):
+	# LINK PORTALE MONITORAGGIO (NELLA NAV-BAR)
+	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
+	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
+
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	df_impianti = pd.DataFrame(impianti.values())
 	nicks = list(df_impianti['nickname'])
@@ -40,7 +44,11 @@ def home(request):
 	curr_anno = Now.year
 
 	context = {
+		# PAGINA
+		'link_monitoraggio': link_monitoraggio,
+		'link_analis': link_analisi,
 		'headtitle': 'Situazione corrispettivi',
+		# DATI PAGINA
 		'impianti': dz_impianti,
 		'active': False,
 		'curr_anno': curr_anno

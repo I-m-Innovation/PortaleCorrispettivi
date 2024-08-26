@@ -34,6 +34,7 @@ def home(request):
 	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
 	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
 
+	# PRENDO I DATI DEGLI IMPIANTI
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	df_impianti = pd.DataFrame(impianti.values())
 	nicks = list(df_impianti['nickname'])
@@ -46,11 +47,10 @@ def home(request):
 	context = {
 		# PAGINA
 		'link_monitoraggio': link_monitoraggio,
-		'link_analis': link_analisi,
-		'headtitle': 'Situazione corrispettivi',
+		'link_analisi': link_analisi,
+		'page_title': 'Portale Corrispettivi',
 		# DATI PAGINA
 		'impianti': dz_impianti,
-		'active': False,
 		'curr_anno': curr_anno
 	}
 	return render(request, 'PortaleCorrispettivi/HomePage.html', context=context)
@@ -62,6 +62,7 @@ def impianto(request, nickname):
 	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
 	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
 
+	# DATI DEGLI IMPAIANTI
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
 	df_impianti = pd.DataFrame(impianti.values())
@@ -69,32 +70,36 @@ def impianto(request, nickname):
 	dz_impianti = df_impianti.to_dict(orient='index')
 	dz_impianto = dz_impianti[nickname]
 
+	# RICHIAMO I DIARI DELLE LETTURE
 	diari_letture = list(impianto.diarioletture_set.all())
 	dz_impianto['diari_letture'] = {str(diario.anno): diario.nome for diario in diari_letture}
 	anni = list(dz_impianto['diari_letture'].keys())
 
-	dz_impianto['active'] = True
-
+	# POST METHOD --> INSERIMENTO COMMENTO MISURA
 	if request.method == 'POST':
 		form = AddCommentoForm(request.POST)
+		# SE L'ANNO INSERITO NON NEGLI ANNI DEI DIARI
 		if request.POST.get('date_input_year') not in anni:
 			form.add_error('date_input', "Anno non valido")
 
 		if form.is_valid():
 			form = form.cleaned_data
+			# SE ESISTE UN COMMENTO VECCHIO PER QUEL MESE/ANNO
 			old_comment = impianto.commento_set.filter(mese_misura=form['date_input'])
 			if old_comment.exists():
+				# SE è STATO SELEZIONATA LA CHECKBOX PER L'ELIMINAZIONE DEL COMMENTO
 				if form['delete']:
 					old_comment.delete()
 					messages.warning(request, 'Il commento è stato eliminato')
-					# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
+				# ALTRIMENTI SI SOVRASCRIVE
 				else:
 					old_comment.update(testo=form['testo'])
 					old_comment.update(stato=form['stato'])
 					messages.warning(request, 'Il precedente commento è stato scovrascritto')
-				# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
+			# SE NON ESISTE UN PRECEDENTE COMMENTO PER QUEL MESE/ANNO
+			# CREAZIONE NUOVO COMMENTO
 			else:
 				new_commento = Commento.objects.create(
 					testo=form['testo'],
@@ -104,16 +109,19 @@ def impianto(request, nickname):
 				)
 				new_commento.save()
 				messages.success(request, 'Commento inserito')
-				# return HttpResponseRedirect(reverse('dettaglio-corrispettivi', kwargs={'nickname': nickname}))
 
+			# SALVATO IL COMMENTO --> RITORNO FORM VUOTO
 			form = AddCommentoForm(initial={'impianto': impianto})
+
+	# GET METHOD --> FORM VUTO (INIZIALIZZATO CON IMPIANTO)
 	else:
 		form = AddCommentoForm(initial={'impianto': impianto})
 
 	context = {
 		# PAGINA
 		'link_monitoraggio': link_monitoraggio,
-		'link_analis': link_analisi,
+		'link_analisi': link_analisi,
+		'page_title': 'Situazione corrispettivi',
 		# DATI PAGINA
 		'impianti': dz_impianti,
 		'headtitle': 'Dettaglio impianto',
@@ -132,21 +140,17 @@ def view_report_impianto(request, nickname):
 	link_monitoraggio = linkportale.objects.filter(tag='portale-monitoraggio')[0].link
 	link_analisi = linkportale.objects.filter(tag='portale-analisi')[0].link
 
+	# DATI DEGLI IMPIANTI
 	impianti = Impianto.objects.all().filter(tipo='Idroelettrico')
 	df_impianti = pd.DataFrame(impianti.values())
 	df_impianti = df_impianti.set_index('nickname')
 	dz_impianti = df_impianti.to_dict(orient='index')
 	dz_impianto = dz_impianti[nickname]
 
+	# ANNI PER I GRAFICI E STATISTICHE
 	Now = datetime.now()
 	curr_anno = Now.year
 	anno_prec = curr_anno-1
-
-	if nickname == 'ionico_foresta':
-		unita_misura = 'mc/s'
-
-	else:
-		unita_misura = 'l/s'
 
 	context = {
 		# PAGINA
@@ -157,9 +161,9 @@ def view_report_impianto(request, nickname):
 		'impianto': dz_impianto,
 		'curr_anno': curr_anno,
 		'anno_prec': anno_prec,
-		'unita_misura': unita_misura,
-		'max_energia': max_energie[nickname] * 1.15,
-		'max_corrispettivi': max_corrispettivi[nickname]
+		'unita_misura': dz_impianto['unita_misura'],
+		# 'max_energia': max_energie[nickname] * 1.15,
+		# 'max_corrispettivi': max_corrispettivi[nickname]
 	}
 	return render(request, 'PortaleCorrispettivi/report.html', context=context)
 
@@ -172,6 +176,7 @@ def genera_reportPDF(request, nickname):
 	from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 	from reportlab.lib import utils
 
+	# FUNZIONE CREA TABELLA AGGREGATI
 	def tabelle_aggregati(DF1, DF2, anno):
 		tot_incassi = sum(list(DF1['incassi']))
 		tot_fatturato = sum(list(DF1['fatturazione_tfo'] + DF['fatturazione_non_inc']))
@@ -187,6 +192,7 @@ def genera_reportPDF(request, nickname):
 		]
 		return aggragati
 
+	# FUNZIONE RE-SIZE IMMAGINI
 	def get_image(path, width=1 * cm, height=1 * cm):
 		img = utils.ImageReader(path)
 		iw, ih = img.getSize()
@@ -197,9 +203,11 @@ def genera_reportPDF(request, nickname):
 			aspect = iw / float(ih)
 			return Image(path, width=(height * aspect), height=height), height * aspect
 
+	# INFO IMPIANTO
 	impianto = Impianto.objects.all().filter(nickname=nickname)[0]
 	dz_impianto = model_to_dict(impianto)
 
+	# DATI DI PRODUZIONE CENTRALE
 	dati_produzione = vlm(nickname)
 	DF = pd.DataFrame(dati_produzione)
 	DF['mesi'] = DF['mesi'].dt.strftime('%m/%y')
@@ -209,13 +217,13 @@ def genera_reportPDF(request, nickname):
 	# GRAFICO ENERGIE, VOLUMI DERIVATI E PORTATE MEDIE
 	plot_andamento = gf.plot_andamento_centrale(DF, unita_misura, 8)
 
-	# GRAFICO CORRISPETTIVI ANNO CORRENTE
+	# GRAFICO CON DATI CORRISPETTIVI ANNO CORRENTE
 	curr_anno = str(datetime.now().year)
 	dati_corrispettivi = tblc(curr_anno+"_"+nickname)
 	DF = pd.DataFrame(dati_corrispettivi['TableCorrispettivi'])
 	plot_corrispettivi = gf.plot_corrispettivi_centrale2(DF, unita_misura, 11, max_corrispettivi[nickname])
 
-	# TABELLE AGGRAGATI ANNO PRECEDENT E ANTECEDENTE
+	# TABELLE AGGRAGATI ANNO PRECEDENTE E ANTECEDENTE
 	anno_prec = str(datetime.now().year - 1)
 	dati_corrispettivi = tblc(anno_prec + "_" + nickname)
 	dati_misure = tblm(anno_prec + "_" + nickname)
@@ -224,7 +232,7 @@ def genera_reportPDF(request, nickname):
 	aggragati_prec = tabelle_aggregati(DF1, DF2, anno_prec)
 
 	# NEL CASO DI TORRINO FORESTA SKIPPO IL 2022 -> DA RIMUOVERE IL PROSSIMO ANNO
-	if not nickname=='ionico_foresta':
+	if not nickname == 'ionico_foresta':
 		anno_ante = str(datetime.now().year - 2)
 		dati_corrispettivi = tblc(anno_ante + "_" + nickname)
 		dati_misure = tblm(anno_ante + "_" + nickname)
@@ -242,7 +250,8 @@ def genera_reportPDF(request, nickname):
 	c = canvas.Canvas(buffer, pagesize=a4_portrait)
 	# fonts = c.getAvailableFonts()
 	c.setFont('Times-Roman', 18)
-	# MOSTRARE FRAMES
+
+	# PER MOSTRARE BORDI
 	show_boundaries = False
 
 	# INSERISCO LOGHI IN ALTO A DESTRA DELLA SLIDE
@@ -289,7 +298,8 @@ def genera_reportPDF(request, nickname):
 	t.wrap(0, 0)
 	t.drawOn(c, plot2_width + 1*cm, frame_andamento.height + 2*cm + 4.5 * cm)
 
-	if not nickname=='ionico_foresta':
+	# NEL CASO DI TORRINO FORESTA SKIPPO IL 2022 -> DA RIMUOVERE IL PROSSIMO ANNO
+	if not nickname == 'ionico_foresta':
 		tables = []
 		t = Table(aggragati_ante, style=ts)
 		t.wrap(0, 0)

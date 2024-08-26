@@ -17,7 +17,7 @@
 				<div class="report-link mt-3">
 					<a class="btn btn-dark" href="{% url 'report-impianto' nickname %}"> Report </a>
 				</div>
-				<h3 style="color: #4a3c54; font-weight: bold; display: inline">{{ impianto.nome_impianto }}</h3> <div id="spinner" class="spinner-border spinner-border-sm" role="status"></div>
+				<h1 style="color: #4a3c54; font-weight: bold; display: inline">{{ impianto.nome_impianto }}</h1> <div id="spinner" class="spinner-border spinner-border-sm" role="status"></div>
 				<h5>Misure di energia e situazione dei corrispettivi</h5> 
 				<div class="container">
 					{% for anno, diario in diari_letture.items reversed %}

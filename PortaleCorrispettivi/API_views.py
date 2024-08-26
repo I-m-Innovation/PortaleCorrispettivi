@@ -11,9 +11,8 @@ from datetime import datetime,timedelta
 import PortaleCorrispettivi.utils.functions as fn
 from .models import *
 
-unit = 'Z:/'
 
-
+# FUNZIONE LETTURA DATI DIARI LETTURE
 def load_diariletture(diari_letture, sheet_letture):
 	# CARICAMENTO DATI DIARI DELLE LETTURE
 	df = pd.concat([pd.read_excel(diario, sheet_letture, parse_dates=False) for diario in diari_letture])
@@ -29,6 +28,7 @@ def load_diariletture(diari_letture, sheet_letture):
 	return df
 
 
+# FUNZIONE LETTURA DATI FILE CASHFLOW
 def load_cashflow(diario_cashflow, sheet):
 	# CARICO FILE DI CASH-FLOW (contiene i dati di tutti gli anni)
 	df = pd.read_excel(diario_cashflow, sheet, index_col=None, header=[2, 3], na_values=[np.nan])
@@ -202,10 +202,9 @@ def tabellacorrispettivi_data(anno_nickname):
 
 		# CODICE DI CONTROLLO STIME-FATTURAZIONE - TABELLA 1
 		# CALCOLO VARIAZIONE TRA STIME E FATTURAZIONE EFFETTIVA, VISUALIZZAZIONE DELLE VARIAZIONI IN EURO (delta_eur) E PERCENTUALE (ratio_eur)
-
 		df1['comments'] = ''
-		df1.loc[df1.fatturazione_tfo != 0,'delta_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc']))
-		df1.loc[df1.fatturazione_tfo != 0,'ratio_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc'])) / df1['aspettata_tot'] * 100
+		df1.loc[df1.fatturazione_tfo != 0, 'delta_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc']))
+		df1.loc[df1.fatturazione_tfo != 0, 'ratio_eur'] = (df1['aspettata_tot'] - (df1['fatturazione_tfo'] + df1['fatturazione_non_inc'])) / df1['aspettata_tot'] * 100
 		df1['ratio_eur'] = df1['ratio_eur'].replace([-np.inf, np.inf], 100)
 
 		# CONTROLLO FINALE SU INSERIMENTO FATTURE DEGLI ULTIMI DUE MESI
@@ -216,7 +215,7 @@ def tabellacorrispettivi_data(anno_nickname):
 
 			if df1[last_last_mese<df1['mese']].iloc[0]['fatturazione_tfo'] == 0:
 				index = df1[last_last_mese < df1['mese']].iloc[0]['i']
-				df1.loc[index,'comments'] = 'fattura'
+				df1.loc[index, 'comments'] = 'fattura'
 
 			# SLICE DATI ANNO CORRENTE
 			df1 = df1[df1['mese'].dt.year == anno]

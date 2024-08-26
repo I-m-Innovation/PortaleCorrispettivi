@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8">
 		{% block refresh %}{% endblock %}
-	  <title>{% block title %}Portale Impianti{% endblock %}</title>
+	  <title>{% block page_title %}Portale Corrispettivi{% endblock %}</title>
 	
 		{% block extra_js %}{% endblock %}
 	
@@ -41,7 +41,8 @@
 		<header>
 			{% include 'navbar.html' %}
 		</header>
-			
+		
+		<!-- MAIN CONTENT -->
 		{% block content %}{% endblock %}
 	{% endblock %}
 	<!-- BOOTSTRAP JS -->

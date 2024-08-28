@@ -145,3 +145,18 @@ body {
     object-fit: cover;
     -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
 }
+
+/* SPINNER */
+.loading {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 3px solid #eaeaea;
+  border-top-color: #f88a28;
+  animation: loading 1s linear infinite;
+}
+@keyframes loading {
+  to {
+    transform: rotate(360deg);
+  }
+}

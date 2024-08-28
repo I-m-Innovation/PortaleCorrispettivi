@@ -12,9 +12,8 @@
 		<div class="item-b">
 			<div class="container-fluid pt-3 px-2">
 					<div class="corrispettivi-card px-4 pt-2">
-{#						<img src="/static/images/sfondo_san_teodoro.png" style="height: 100px; width: 105%; overflow: hidden; margin: -20px -20px; padding: 0; object-fit: cover; -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));">#}
 						<h3 style="color: #4a3c54; font-weight: bold; ">Parco idroelettrici</h3>
-						<p>Misure di energia e situazione dei corrispettivi</p> <div id="spinner" class="spinner-border spinner-border-sm" role="status"></div>
+						<p>Misure di energia e situazione dei corrispettivi</p> <div id="spinner" class="loading" style="margin-bottom: 20px"></div>
 						<div class="col-1">
 							<b>Selezionare anno</b>
 							<select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selettore-anno">
@@ -60,14 +59,6 @@
 	</main>
 	<script>
 			$( document ).ready(function () {
-					$( document ).ajaxStart(function(event, jqXHR) {
-							document.getElementById("spinner").className = "spinner-border spinner-border-sm";
-					});
-							
-					$( document ).ajaxStop(function(event, jqXHR) {
-							document.getElementById("spinner").className = "";
-					});
-			
 					var grafico = echarts.init(document.getElementById('chart'));
 					window.addEventListener('resize', function() {grafico.resize();});
                     

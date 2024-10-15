@@ -12,25 +12,25 @@
 						var T2 = data.table2
 						
 						{% if anno == curr_anno %}
-						var last_row1 = T1.filter(function (el) {
-								return el.mese === 'Totale Periodo'
-						})
-						
-						document.getElementById("imponibile1").innerHTML = toLocaleEUR(last_row1[0].canone,2);
-						document.getElementById("iva1").innerHTML = toLocaleEUR(last_row1[0].canone * 0.22,2);
-						document.getElementById("totale1").innerHTML =  toLocaleEUR(last_row1[0].canone + last_row1[0].canone * 0.22,2);
-						
-						var last_row2 = T2.filter(function (el) {
-								return el.mese === 'Totale Periodo'
-						})
-						
-						let now = new Date();
-						let ottobre = new Date(now.getFullYear(), 10, 1, 0, 0, 0, 0)
-						if (now >= ottobre) {
-								document.getElementById("imponibile2").innerHTML = toLocaleEUR(last_row2[0].canone,2);
-								document.getElementById("iva2").innerHTML = toLocaleEUR(last_row2[0].canone * 0.22,2);
-								document.getElementById("totale2").innerHTML =  toLocaleEUR(last_row2[0].canone + last_row2[0].canone * 0.22,2);
-						}
+							var last_row1 = T1.filter(function (el) {
+									return el.mese === 'Totale Periodo'
+							})
+							
+							document.getElementById("imponibile1").innerHTML = toLocaleEUR(last_row1[0].canone,2);
+							document.getElementById("iva1").innerHTML = toLocaleEUR(last_row1[0].canone * 0.22,2);
+							document.getElementById("totale1").innerHTML =  toLocaleEUR(last_row1[0].canone + last_row1[0].canone * 0.22,2);
+							
+							var last_row2 = T2.filter(function (el) {
+									return el.mese === 'Totale Periodo'
+							})
+							
+							let now = new Date();
+							let ottobre = new Date(now.getFullYear(), 10, 1, 0, 0, 0, 0)
+							{% comment %} if (now >= ottobre) { {% endcomment %}
+									document.getElementById("imponibile2").innerHTML = toLocaleEUR(last_row2[0].canone,2);
+									document.getElementById("iva2").innerHTML = toLocaleEUR(last_row2[0].canone * 0.22,2);
+									document.getElementById("totale2").innerHTML =  toLocaleEUR(last_row2[0].canone + last_row2[0].canone * 0.22,2);
+							{% comment %} } {% endcomment %}
 						{% endif %}
 						
 						$('#table3_{{ anno }}').dataTable({

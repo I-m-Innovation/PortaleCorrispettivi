@@ -127,6 +127,7 @@ def tabellaconsorzi_data(anno_nickname):
 
 		dict1 = DF1_before.to_dict('records')
 		dict2 = DF1_after.to_dict('records')
+		
 
 	except Exception as error:
 		print(error)
@@ -139,6 +140,8 @@ def tabellaconsorzi_data(anno_nickname):
 		'table2': dict2,
 		'info': dz_impianto,
 	}
+
+	print(table_data)
 	return table_data
 
 
